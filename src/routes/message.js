@@ -8,7 +8,7 @@ const { update } = require('../models/user');
 /** Route to get all messages. */
 router.get('/', (req, res) => {
     Message.find().then(messages => {
-        return res.json(messages)
+        return res.json({messages: messages})
     }).catch(err => {
         throw err.message
     })
@@ -49,8 +49,8 @@ router.put('/:messageId', (req, res) => {
     // Update the matching message using `findByIdAndUpdate`
     Message.findByIdAndUpdate(req.params.messageId, req.body).then(() => {
         return Message.findById(req.params.messageId)
-    }).then(message => {
-        return res.json({message})
+    }).then(updatedMessage => {
+        return res.json({message: updatedMessage})
     }).catch(err => {
         throw err.message
     })
@@ -63,10 +63,13 @@ router.delete('/:messageId', (req, res) => {
     Message.findByIdAndDelete(req.params.messageId).then((deletedMessage) => {
         return User.findById(deletedMessage.author)
     }).then(user => {
-        index = user.messages.indexOf(deletedMessage)
+        index = user.messages.indexOf({"_id": req.params.messageId})
         user.messages.splice(index, 1)
 
-        return res.json("Message has been deleted")
+        return res.json({
+            'message': "Message has been deleted",
+            '_id': req.params.messageId
+            })
     }).catch(err => {
         throw err.message
     })
