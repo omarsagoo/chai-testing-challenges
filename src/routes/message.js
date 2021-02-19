@@ -2,21 +2,27 @@ const express = require('express')
 const router = express.Router();
 
 const User = require('../models/user')
-const Message = require('../models/message')
+const Message = require('../models/message');
+const { update } = require('../models/user');
 
 /** Route to get all messages. */
 router.get('/', (req, res) => {
-    // TODO: Get all Message objects using `.find()`
-
-    // TODO: Return the Message objects as a JSON list
+    Message.find().then(messages => {
+        return res.json(messages)
+    }).catch(err => {
+        throw err.message
+    })
 })
 
 /** Route to get one message by id. */
 router.get('/:messageId', (req, res) => {
-    // TODO: Get the Message object with id matching `req.params.id`
+    // Get the Message object with id matching `req.params.id`
     // using `findOne`
-
-    // TODO: Return the matching Message object as JSON
+    Message.findById(req.params.messageId).then(message => {
+        return res.json(message)
+    }).catch(err => {
+        throw err.message
+    })
 })
 
 /** Route to add a new message. */
@@ -40,17 +46,30 @@ router.post('/', (req, res) => {
 
 /** Route to update an existing message. */
 router.put('/:messageId', (req, res) => {
-    // TODO: Update the matching message using `findByIdAndUpdate`
-
-    // TODO: Return the updated Message object as JSON
+    // Update the matching message using `findByIdAndUpdate`
+    Message.findByIdAndUpdate(req.params.messageId, req.body).then(() => {
+        return Message.findById(req.params.messageId)
+    }).then(message => {
+        return res.json({message})
+    }).catch(err => {
+        throw err.message
+    })
 })
 
 /** Route to delete a message. */
 router.delete('/:messageId', (req, res) => {
-    // TODO: Delete the specified Message using `findByIdAndDelete`. Make sure
+    // Delete the specified Message using `findByIdAndDelete`. Make sure
     // to also delete the message from the User object's `messages` array
+    Message.findByIdAndDelete(req.params.messageId).then((deletedMessage) => {
+        return User.findById(deletedMessage.author)
+    }).then(user => {
+        index = user.messages.indexOf(deletedMessage)
+        user.messages.splice(index, 1)
 
-    // TODO: Return a JSON object indicating that the Message has been deleted
+        return res.json("Message has been deleted")
+    }).catch(err => {
+        throw err.message
+    })
 })
 
 module.exports = router
